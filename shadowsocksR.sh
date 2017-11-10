@@ -19,6 +19,9 @@ echo "# Github: https://github.com/shadowsocksr/shadowsocksr      #"
 echo "#############################################################"
 echo
 
+libsodium_file="libsodium-1.0.15"
+libsodium_url="https://github.com/jedisct1/libsodium/releases/download/1.0.15/libsodium-1.0.15.tar.gz"
+
 #Current folder
 cur_dir=`pwd`
 # Stream Ciphers
@@ -183,7 +186,7 @@ pre_install(){
         exit 1
     fi
     # Set ShadowsocksR config password
-    echo "Please input password for ShadowsocksR:"
+    echo "Please enter password for ShadowsocksR:"
     read -p "(Default password: teddysun.com):" shadowsockspwd
     [ -z "${shadowsockspwd}" ] && shadowsockspwd="teddysun.com"
     echo
@@ -194,24 +197,21 @@ pre_install(){
     # Set ShadowsocksR config port
     while true
     do
-    echo -e "Please input port for ShadowsocksR [1-65535]:"
+    echo -e "Please enter a port for ShadowsocksR [1-65535]:"
     read -p "(Default port: 8989):" shadowsocksport
     [ -z "${shadowsocksport}" ] && shadowsocksport="8989"
     expr ${shadowsocksport} + 1 &>/dev/null
     if [ $? -eq 0 ]; then
-        if [ ${shadowsocksport} -ge 1 ] && [ ${shadowsocksport} -le 65535 ]; then
+        if [ ${shadowsocksport} -ge 1 ] && [ ${shadowsocksport} -le 65535 ] && [ ${shadowsocksport:0:1} != 0 ]; then
             echo
             echo "---------------------------"
             echo "port = ${shadowsocksport}"
             echo "---------------------------"
             echo
             break
-        else
-            echo -e "[${red}Error${plain}] Input error, please input a number between 1 and 65535"
         fi
-    else
-        echo -e "[${red}Error${plain}] Input error, please input a number between 1 and 65535"
     fi
+    echo -e "[${red}Error${plain}] Please enter a correct number [1-65535]"
     done
 
     # Set shadowsocksR config stream ciphers
@@ -226,11 +226,11 @@ pre_install(){
     [ -z "$pick" ] && pick=2
     expr ${pick} + 1 &>/dev/null
     if [ $? -ne 0 ]; then
-        echo -e "[${red}Error${plain}] Input error, please input a number"
+        echo -e "[${red}Error${plain}] Please enter a number"
         continue
     fi
     if [[ "$pick" -lt 1 || "$pick" -gt ${#ciphers[@]} ]]; then
-        echo -e "[${red}Error${plain}] Input error, please input a number between 1 and ${#ciphers[@]}"
+        echo -e "[${red}Error${plain}] Please enter a number between 1 and ${#ciphers[@]}"
         continue
     fi
     shadowsockscipher=${ciphers[$pick-1]}
@@ -314,8 +314,8 @@ pre_install(){
 # Download files
 download_files(){
     # Download libsodium file
-    if ! wget --no-check-certificate -O libsodium-1.0.13.tar.gz https://github.com/jedisct1/libsodium/releases/download/1.0.13/libsodium-1.0.13.tar.gz; then
-        echo -e "[${red}Error${plain}] Failed to download libsodium-1.0.13.tar.gz!"
+    if ! wget --no-check-certificate -O ${libsodium_file}.tar.gz ${libsodium_url}; then
+        echo -e "[${red}Error${plain}] Failed to download ${libsodium_file}.tar.gz!"
         exit 1
     fi
     # Download ShadowsocksR file
@@ -397,8 +397,8 @@ install(){
     # Install libsodium
     if [ ! -f /usr/lib/libsodium.a ]; then
         cd ${cur_dir}
-        tar zxf libsodium-1.0.13.tar.gz
-        cd libsodium-1.0.13
+        tar zxf ${libsodium_file}.tar.gz
+        cd ${libsodium_file}
         ./configure --prefix=/usr && make && make install
         if [ $? -ne 0 ]; then
             echo -e "[${red}Error${plain}] libsodium install failed!"
@@ -445,7 +445,7 @@ install(){
 # Install cleanup
 install_cleanup(){
     cd ${cur_dir}
-    rm -rf manyuser.zip shadowsocksr-manyuser libsodium-1.0.13.tar.gz libsodium-1.0.13
+    rm -rf manyuser.zip shadowsocksr-manyuser ${libsodium_file}.tar.gz ${libsodium_file}
 }
 
 
